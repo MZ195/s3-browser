@@ -1,155 +1,107 @@
-# S3 Browser
+# React S3-Object-Storage Web App
 
-[![CI workflow status][badge]][actions]
+This is a React web application that provides a simple interface for interacting with an S3-compatible object storage system (e.g., AWS S3, MinIO, DigitalOcean Spaces, etc.). The frontend allows users to interact with the object storage through a clean and intuitive interface.
 
-[badge]: https://github.com/tlinhart/s3-browser/actions/workflows/ci.yml/badge.svg
-[actions]: https://github.com/tlinhart/s3-browser/actions
+## Features
 
-Simple explorer for Amazon S3 buckets built with React.
+- **List Objects**: Display a list of objects stored in the S3-compatible storage.
+- **View Object Metadata**: View metadata information about specific objects.
+- **Download Objects**: Download objects from the S3-compatible storage.
+- **Upload Files**: Upload files to the S3-compatible storage.
+- **Delete Objects**: Delete objects from the storage.
 
-## Motivation and Design
+## Prerequisites
 
-Suppose you have contents in an Amazon S3 bucket which you would like to make
-accessible to either non-technical people or people who don't have access to an
-Amazon S3 console. You are looking for a simple way without building a custom
-application for the purpose. That's where S3 Browser kicks in. It's a
-single-page (and single-file) application using AWS SDK to list the bucket's
-contents. It relies on the bucket to have static website hosting enabled for
-actually accessing the contents. S3 Browser is designed, though not required, to
-be hosted from the same bucket as well.
+To run this application, you'll need:
 
-## S3 Bucket and IAM Setup
+- Node.js and npm (or yarn) installed on your local machine.
+- A running instance of the [FastAPI S3-Compatible Object Storage API](https://github.com/MZ195/s3-compatible-api).
+- Access to an S3-compatible object storage service (e.g., AWS S3, MinIO, DigitalOcean Spaces, etc.).
 
-The instructions below provide basic configuration steps for an S3 bucket named
-`www.example.com`.
+## Setup
 
-1. Enable static website hosting for the bucket and configure `index.html` as
-   the index document.
-1. Disable block public access settings and add the following bucket policy to
-   grant public read access:
+### 1. Clone the Repository
 
-   ```json
-   {
-     "Version": "2012-10-17",
-     "Statement": [
-       {
-         "Effect": "Allow",
-         "Principal": "*",
-         "Action": "s3:GetObject",
-         "Resource": "arn:aws:s3:::www.example.com/*"
-       }
-     ]
-   }
-   ```
+Start by cloning the repository to your local machine:
 
-1. Add the following CORS configuration to enable AWS SDK API calls:
+### 2. Install Dependencies
 
-   ```json
-   [
-     {
-       "AllowedHeaders": ["*"],
-       "AllowedMethods": ["GET"],
-       "AllowedOrigins": ["http://www.example.com"],
-       "ExposeHeaders": []
-     }
-   ]
-   ```
+Install the necessary dependencies by running:
 
-   This assumes that S3 Browser is hosted from the same bucket and accessed
-   using a CNAME record `www.example.com` for the website endpoint. If this is
-   not the case, change the value in an `AllowedOrigins` element accordingly or
-   set it to `*` to allow access from any origin.
-
-1. Create an IAM user with programmatic access and attach the following inline
-   policy to grant the user permission to list the bucket's contents:
-
-   ```json
-   {
-     "Version": "2012-10-17",
-     "Statement": [
-       {
-         "Effect": "Allow",
-         "Action": "s3:ListBucket",
-         "Resource": "arn:aws:s3:::www.example.com"
-       }
-     ]
-   }
-   ```
-
-## Usage
-
-Start by cloning the repository and installing the dependencies:
-
-```sh
-git clone https://github.com/tlinhart/s3-browser.git
-cd s3-browser
-nvm install
+```bash
 npm install
 ```
 
-Next, rename the `.env.example` file to `.env` and set the environment
-variables. This will provide configuration for the application.
+or, if you're using yarn:
 
-### Development Server
-
-To start the webpack development server with Hot Module Replacement (HMR)
-enabled, run
-
-```sh
-npm run start
+```bash
+yarn install
 ```
 
-and open the browser at `http://localhost:8080`.
+### 3. Start the Application
 
-### Production Build
+To start the React development server, run:
 
-To build the application for production, run
+```bash
+npm start
+```
 
-```sh
+or, if you're using yarn:
+
+```bash
+yarn start
+```
+
+This will start the React app and open it in your default browser, usually at `http://localhost:3000`.
+
+## Components
+
+The web app is structured into several key components:
+
+### 1. **FileUploader**:
+
+- This component allows users to upload files to the S3-compatible object storage. It uses a simple file input and sends the file to the backend API.
+
+### 2. **ObjectList**:
+
+- This component lists the objects stored in the S3-compatible storage. It fetches the object list from the backend and displays each item with a button to download, view metadata, or delete.
+
+### 3. **ObjectMetadata**:
+
+- This component allows users to view metadata information about an individual object. It fetches the object metadata (such as size, last modified date, etc.) from the backend.
+
+### 4. **ObjectDownload**:
+
+- This component allows users to download an object from the S3-compatible storage. It triggers the download by fetching the object from the backend.
+
+### 5. **ObjectDelete**:
+
+- This component provides a delete button to remove an object from the storage. It sends a request to the backend API to delete the object.
+
+## API Integration
+
+The React app interacts with the FastAPI S3-compatible object storage API. The following API endpoints are used:
+
+- **GET /objects**: List all objects in the storage.
+- **GET /object_info**: Fetch metadata for an object.
+- **GET /object**: Download a specific object.
+- **POST /object**: Upload a file to the storage.
+- **DELETE /object**: Delete a specific object from the storage.
+
+## Error Handling
+
+The app will display user-friendly error messages if any API operation fails, such as if an object fails to upload, download, or delete. The error messages are provided by the FastAPI backend and displayed in the UI to the user.
+
+## CORS
+
+The React app interacts with the FastAPI backend, and CORS (Cross-Origin Resource Sharing) is configured to allow all origins by default. You can restrict or modify the allowed origins from the FastAPI backend if needed.
+
+## Build for Production
+
+To build the app for production, use the following command:
+
+```bash
 npm run build
 ```
 
-This will bundle everything into a single distributable file `dist/index.html`
-ready to be uploaded to the S3 bucket. To test the production build, run
-
-```sh
-npm run serve
-```
-
-and point the browser to `http://localhost:3000`.
-
-### Formatting, Linting and Tests
-
-To format the files with Prettier, issue
-
-```sh
-npm run format
-```
-
-To lint the code with ESLint and automatically try to fix the issues, run
-
-```sh
-npm run lint:fix
-```
-
-To run the tests with Jest test runner, issue
-
-```sh
-npm run test
-```
-
-By default, Jest runs in silent mode which prevents console output during the
-tests. To allow it (e.g. for debugging), run
-
-```sh
-npm run test -- --no-silent
-```
-
-## Demo
-
-There is a demo of the application available at
-http://s3-browser-demo.linhart.tech where S3 Browser is hosted from the same
-bucket as the contents (obtained from [getsamplefiles.com][getsamplefiles]). The
-whole stack is managed with Pulumi IaC and deployed using GitHub Actions.
-
-[getsamplefiles]: https://getsamplefiles.com
+This will create an optimized production build in the `build` folder. You can then deploy the contents of this folder to your preferred static hosting service (e.g., Netlify, Vercel, GitHub Pages, etc.).
